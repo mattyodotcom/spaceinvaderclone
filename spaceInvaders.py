@@ -10,6 +10,9 @@ pygame.init()
 #create screen (800x600 resolution)
 screen=pygame.display.set_mode((800,600))
 
+# background image
+background = pygame.image.load('background.jpeg')
+
 #Ttitle and Icon
 pygame.display.set_caption("Space Invaders")
 icon = pygame.image.load('pewpew.png')
@@ -29,7 +32,7 @@ def player(x,y):
 alien1=pygame.image.load('alien1.png')
 alien1imageX = random.randint (0,800)
 alien1imageY = random.randint (50,150)
-alien1imageXchange = 1
+alien1imageXchange = 3
 alien1imageYchange = 40
 
 def enemy1(x,y):
@@ -44,6 +47,7 @@ running = True
 
 while running:
     screen.fill((70,70,70))  #(red, green, blue)
+    screen.blit(background,(0,0))
     for event in pygame.event.get():
         if event.type == pygame.QUIT:
             running = False
