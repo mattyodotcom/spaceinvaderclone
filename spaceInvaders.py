@@ -39,6 +39,23 @@ def enemy1(x,y):
     screen.blit(alien1, (x,y))
 
 
+#Bullet
+bulletimage=pygame.image.load('bullet.png')
+bulletimageX = 0
+bulletimageY = 480
+bulletimageXchange = 0
+bulletimageYchange = 10
+bullet_state = "ready"
+
+
+
+def shoot_bullet (x,y):
+    global bullet_state
+    global bulletimageX
+    bullet_state = "fire"
+    screen.blit(bulletimage, (x+16,y+10))
+
+
 
 
 #Game Loop
@@ -58,6 +75,10 @@ while running:
                 playerimageXchange = -3
             if event.key == pygame.K_RIGHT:
                 playerimageXchange = 3
+            if event.key == pygame.K_SPACE:
+                if bullet_state is "ready":
+                    bulletimageX = playerimageX
+                    shoot_bullet(bulletimageX,bulletimageY)
         if event.type == pygame.KEYUP:
             if event.key == pygame.K_LEFT or event.key == pygame.K_RIGHT:
                 playerimageXchange = 0
@@ -78,6 +99,17 @@ while running:
         alien1imageXchange = -1 * alien1imageXchange
         alien1imageY += alien1imageYchange
         
+
+    #bullet movement
+    if bulletimageY < 0:
+            bullet_state = "ready"
+            bulletimageY = 480
+    if bullet_state is "fire":
+        shoot_bullet(bulletimageX, bulletimageY)
+        bulletimageY -= bulletimageYchange
+       
+
+
 
     
 
