@@ -1,3 +1,4 @@
+from numpy import true_divide
 import pygame
 from pygame import display
 from pygame import mixer
@@ -23,6 +24,12 @@ screen=pygame.display.set_mode((800,600))
 # background image
 background = pygame.image.load('background.jpeg').convert()
 
+#background sound
+'''
+mixer.music.load('background.wav')
+mixer.music.play(-1)
+'''
+
 #Ttitle and Icon
 pygame.display.set_caption("Space Invaders")
 icon = pygame.image.load('pewpew.png')
@@ -35,7 +42,23 @@ playerimageY = 480
 playerimageXchange = 0
 playerimageYchange = 0
 
-score = 0
+#score
+
+score_value = 0
+font = pygame.font.Font ('freesansbold.ttf',32)
+textX = 10
+textY = 10
+
+def show_score (x,y):
+    score = font.render ("Score: " + str(score_value),True,(255,255,255))
+    screen.blit (score, (x,y))
+
+#game over text
+
+def game_over_text():
+    game_over = font.render ("GAME OVER!!!!!!!" ,True,(255,255,255))
+    screen.blit (game_over, (200,250))
+
 
 
 #Enemy alien 1
@@ -66,7 +89,15 @@ bulletimageY = 480
 bulletimageXchange = 0
 bulletimageYchange = 10
 bullet_state = "ready"
-bullet_sound = pygame.mixer.Sound("hugo.wav")
+hit_sound = pygame.mixer.Sound("hugo.wav")
+shoot_sound = pygame.mixer.Sound("laser.wav")
+
+
+def enemy_hit_ship(ypos):
+    if ypos >= 450:
+        return True
+    return False
+
 
 
 
@@ -122,6 +153,7 @@ while running:
                 if bullet_state is "ready":
                     bulletimageX = playerimageX
                     shoot_bullet(bulletimageX,bulletimageY)
+                    shoot_sound.play()
         if event.type == pygame.KEYUP:
             if event.key == pygame.K_LEFT or event.key == pygame.K_RIGHT:
                 playerimageXchange = 0
@@ -137,6 +169,15 @@ while running:
 
     for i in range (num_of_enemies):
 
+        #game over situation
+        if enemy_hit_ship(alien1imageY[i]):
+            print ("DEAD!!!!!!!!!")
+            for j in range (num_of_enemies):
+                alien1imageY[j] = 2000
+            game_over_text()
+            break
+        
+
         alien1imageX[i] += alien1imageXchange[i]
         if alien1imageX[i] > 736:
             alien1imageXchange[i] = -1 * alien1imageXchange[i]
@@ -144,15 +185,17 @@ while running:
         if alien1imageX[i] < 0:
             alien1imageXchange[i] = -1 * alien1imageXchange[i]
             alien1imageY[i] += alien1imageYchange[i]
+        
+
 
         collision = is_collision (alien1imageX[i],alien1imageY[i], bulletimageX, bulletimageY)
         if collision:
             print ("Collision!!!!!")
             bulletimageY = 480
             bullet_state = "ready"
-            bullet_sound.play()
-            score += 1
-            print (score)
+            hit_sound.play()
+            score_value += 1
+            #print (score)
             alien1imageX[i] = random.randint (0,735)
             alien1imageY[i] = random.randint (50,150)
 
@@ -169,7 +212,7 @@ while running:
         bulletimageY -= bulletimageYchange
 
 
-
+    show_score(textX,textY)
     player(playerimageX, playerimageY)
    
     pygame.display.update()
