@@ -1,17 +1,27 @@
 import pygame
 from pygame import display
+from pygame import mixer
 import random
-
+import math
+import time
 
 #init pygame
 pygame.init()
+pygame.mixer.init()
 
+'''CLOCK, FPS, and CLOCK.tick() are my solution to a "speed" problem.  Randomly, the game would 
+*significantly* speed up, by 300% or more.  Without knowing exactly how things were rendered/refreshed, 
+I threw this fix against the wall, hoping it would stick.  It appears
+to have solved the problem.  The game now runs smoothly'''
+
+CLOCK = pygame.time.Clock()
+FPS = 60
 
 #create screen (800x600 resolution)
 screen=pygame.display.set_mode((800,600))
 
 # background image
-background = pygame.image.load('background.jpeg')
+background = pygame.image.load('background.jpeg').convert()
 
 #Ttitle and Icon
 pygame.display.set_caption("Space Invaders")
@@ -25,18 +35,28 @@ playerimageY = 480
 playerimageXchange = 0
 playerimageYchange = 0
 
-def player(x,y):
-    screen.blit(playerimage,(x,y))
+score = 0
+
 
 #Enemy alien 1
-alien1=pygame.image.load('alien1.png')
-alien1imageX = random.randint (0,800)
-alien1imageY = random.randint (50,150)
-alien1imageXchange = 3
-alien1imageYchange = 40
 
-def enemy1(x,y):
-    screen.blit(alien1, (x,y))
+alien1=[]
+alien1imageX = []
+alien1imageY = []
+alien1imageXchange = []
+alien1imageYchange = []
+
+num_of_enemies = 5
+
+for i in range (num_of_enemies):
+
+    alien1.append(pygame.image.load('alien1.png'))
+    alien1imageX.append(random.randint (0,735))
+    alien1imageY.append(random.randint (50,150))
+    alien1imageXchange.append(random.randint(1,7))
+    alien1imageYchange.append(40)
+
+
 
 
 #Bullet
@@ -46,6 +66,18 @@ bulletimageY = 480
 bulletimageXchange = 0
 bulletimageYchange = 10
 bullet_state = "ready"
+bullet_sound = pygame.mixer.Sound("hugo.wav")
+
+
+
+
+def player(x,y):
+    screen.blit(playerimage,(x,y))
+
+
+
+def enemy1(x,y,i):
+    screen.blit(alien1[i], (x,y))
 
 
 
@@ -55,6 +87,17 @@ def shoot_bullet (x,y):
     bullet_state = "fire"
     screen.blit(bulletimage, (x+16,y+10))
 
+def is_collision (enemyX, enemyY, bulletX, bulletY):
+       #hit detection
+    #dist = ((bulletimageX-alien1imageX)*(bulletimageX-alien1imageX)) + ((bulletimageY-alien1imageY)*(bulletimageY-alien1imageY))
+    dist = math.pow(enemyX-bulletX,2)+ math.pow(enemyY-bulletY,2)
+    distancebetweenbulletandenemy = math.sqrt (dist)
+    if distancebetweenbulletandenemy <27:
+        return True
+        print (distancebetweenbulletandenemy)
+    else:
+        return False
+        print (distancebetweenbulletandenemy)
 
 
 
@@ -90,32 +133,48 @@ while running:
     if playerimageX < 0:
         playerimageX = 0
 
-    #check for out of bounds for player
-    alien1imageX += alien1imageXchange
-    if alien1imageX > 736:
-        alien1imageXchange = -1 * alien1imageXchange
-        alien1imageY += alien1imageYchange
-    if alien1imageX < 0:
-        alien1imageXchange = -1 * alien1imageXchange
-        alien1imageY += alien1imageYchange
+    #check for out of bounds for alien
+
+    for i in range (num_of_enemies):
+
+        alien1imageX[i] += alien1imageXchange[i]
+        if alien1imageX[i] > 736:
+            alien1imageXchange[i] = -1 * alien1imageXchange[i]
+            alien1imageY[i] += alien1imageYchange[i]
+        if alien1imageX[i] < 0:
+            alien1imageXchange[i] = -1 * alien1imageXchange[i]
+            alien1imageY[i] += alien1imageYchange[i]
+
+        collision = is_collision (alien1imageX[i],alien1imageY[i], bulletimageX, bulletimageY)
+        if collision:
+            print ("Collision!!!!!")
+            bulletimageY = 480
+            bullet_state = "ready"
+            bullet_sound.play()
+            score += 1
+            print (score)
+            alien1imageX[i] = random.randint (0,735)
+            alien1imageY[i] = random.randint (50,150)
+
+        enemy1(alien1imageX[i],alien1imageY[i],i)
         
 
     #bullet movement
     if bulletimageY < 0:
             bullet_state = "ready"
             bulletimageY = 480
+
     if bullet_state is "fire":
         shoot_bullet(bulletimageX, bulletimageY)
         bulletimageY -= bulletimageYchange
-       
 
 
-
-    
 
     player(playerimageX, playerimageY)
-    enemy1(alien1imageX,alien1imageY)
+   
     pygame.display.update()
+    CLOCK.tick(FPS)
+
 
     
 
